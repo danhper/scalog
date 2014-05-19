@@ -64,6 +64,22 @@ class DatalogParserSpec extends Specification {
         checkedParsed(parsed, Atom(Predicate("foo"), List(Variable("X"), Constant("y"))))
       }
     }
+
+    "parse formula" in {
+      "parse simple formula" in {
+        val parsed = parser.parseAll(parser.formula, "foo(X)")
+        checkedParsed(parsed, Formula(List(Atom(Predicate("foo"), List(Variable("X"))))))
+      }
+
+      "parse complex formula" in {
+        val parsed = parser.parseAll(parser.formula, "foo(X, y), bar, baz(x, Y)")
+        checkedParsed(parsed, Formula(List(
+          Atom(Predicate("foo"), List(Variable("X"), Constant("y"))),
+          Atom(Predicate("bar"), List.empty),
+          Atom(Predicate("baz"), List(Constant("x"), Variable("Y")))
+        )))
+      }
+    }
   }
 
 }
