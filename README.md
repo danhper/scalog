@@ -1,4 +1,4 @@
-# scalog
+# scalog (in development)
 
 Basic datalog implementation in Scala.
 
