@@ -1,7 +1,8 @@
 package com.tuvistavie.scalog
 package parsers
 
-import ast._
+import models._
+import AstImplicits._
 
 import org.specs2.mutable._
 
@@ -19,66 +20,67 @@ class DatalogParserSpec extends Specification {
   "The parser" should {
     "parse variables" in {
       val parsed = parser.parseAll(parser.variable, "Foo")
-      checkedParsed(parsed, Variable("Foo"))
+      checkedParsed(parsed, "Foo".v)
       parser.parseAll(parser.variable, "foo").successful must beFalse
     }
 
     "parse constants" in {
       val parsed = parser.parseAll(parser.constant, "foo")
-      checkedParsed(parsed, Constant("foo"))
+      checkedParsed(parsed, "foo".c)
       parser.parseAll(parser.constant, "Foo").successful must beFalse
     }
 
     "parse symbols" in {
       val parsedConstant = parser.parseAll(parser.symbol, "foo")
-      checkedParsed(parsedConstant, Constant("foo"))
+      checkedParsed(parsedConstant, "foo".c)
       val parsedVariable = parser.parseAll(parser.symbol, "Foo")
-      checkedParsed(parsedVariable, Variable("Foo"))
+      checkedParsed(parsedVariable, "Foo".v)
       parser.parseAll(parser.variable, "Foo-").successful must beFalse
     }
 
     "parse predicates" in {
       val parsed = parser.parseAll(parser.predicate, "foo")
-      checkedParsed(parsed, Predicate("foo"))
+      checkedParsed(parsed, "foo".p)
       parser.parseAll(parser.predicate, "Foo").successful must beFalse
     }
 
     "parse parameters" in {
       val parsed = parser.parseAll(parser.parameters, "a,B")
-      checkedParsed(parsed, List(Constant("a"), Variable("B")))
+      checkedParsed(parsed, List("a".c, "B".v))
     }
 
     "parse parameters list" in {
       val parsed = parser.parseAll(parser.parametersList, "(a,B)")
-      checkedParsed(parsed, List(Constant("a"), Variable("B")))
+      checkedParsed(parsed, List("a".c, "B".v))
     }
 
     "parse atom" in {
       "parse atom without parameters" in {
         val parsed = parser.parseAll(parser.atom, "foo")
-        checkedParsed(parsed, Atom(Predicate("foo"), List.empty))
+        checkedParsed(parsed, "foo".a)
       }
 
       "parse atom with parameters" in {
         val parsed = parser.parseAll(parser.atom, "foo(X, y)")
-        checkedParsed(parsed, Atom(Predicate("foo"), List(Variable("X"), Constant("y"))))
+        checkedParsed(parsed, "foo".a("X", "y"))
       }
     }
 
     "parse formula" in {
       "parse simple formula" in {
         val parsed = parser.parseAll(parser.formula, "foo(X)")
-        checkedParsed(parsed, Formula(List(Atom(Predicate("foo"), List(Variable("X"))))))
+        checkedParsed(parsed, Formula("foo".a("X")))
       }
 
       "parse complex formula" in {
         val parsed = parser.parseAll(parser.formula, "foo(X, y), bar, baz(x, Y)")
-        checkedParsed(parsed, Formula(List(
-          Atom(Predicate("foo"), List(Variable("X"), Constant("y"))),
-          Atom(Predicate("bar"), List.empty),
-          Atom(Predicate("baz"), List(Constant("x"), Variable("Y")))
-        )))
+        checkedParsed(parsed, "foo".a("X", "y") ~~ "bar" ~~ "baz".a("x", "Y"))
       }
+    }
+
+    "parse clause" in {
+      val parsed = parser.parseAll(parser.clause, "foo(X) :- bar(X, baz)")
+      checkedParsed(parsed, "foo".a("X") :- "bar".a("X", "baz"))
     }
   }
 

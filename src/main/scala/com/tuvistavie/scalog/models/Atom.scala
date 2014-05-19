@@ -19,7 +19,9 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
 
   def a: Atom = this
 
-  def apply(symbols: Symbol*) = Atom(predicate, symbols.toList)
+  def apply(symbols: String*) = Atom(predicate, symbols map { Symbol(_) } toList)
+
+  def :-(formula: Formula) = Clause(this, formula)
 }
 
 object Atom {

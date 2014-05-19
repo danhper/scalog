@@ -18,6 +18,8 @@ class Predicate(val name: String) extends NamedEntity {
     val state = Seq(name)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  def p: Predicate = this
 }
 
 object Predicate {
