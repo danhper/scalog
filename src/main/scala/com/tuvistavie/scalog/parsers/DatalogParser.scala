@@ -10,11 +10,11 @@ trait DatalogParser extends RegexParsers {
   val constantRegexp  = """[a-z][a-z0-9_]+""".r
   val predicateRegexp = constantRegexp
 
-  def query: Parser[Query] = formula ^^ { Query(_) }
+  def query: Parser[Query] = formula <~ "." ^^ { Query(_) }
 
   def database: Parser[Database] = rep(data) ^^ { Database(_) }
 
-  def data: Parser[Data] = clause | formula
+  def data: Parser[Data] = (clause | formula) <~ "."
 
   def clause: Parser[Clause] = (atom <~ ":-") ~ formula ^^ {
     case at ~ form => Clause(at, form)
@@ -22,9 +22,12 @@ trait DatalogParser extends RegexParsers {
 
   def formula: Parser[Formula] = repsep(atom, ",") ^^ { Formula(_) }
 
-  def atom: Parser[Atom] = (predicate <~ "(") ~ parameters <~ ")" ^^ {
-    case pred ~ params => Atom(pred, params)
+  def atom: Parser[Atom] = predicate ~ (parametersList ?) ^^ {
+    case pred ~ None => Atom(pred, List.empty)
+    case pred ~ Some(params) => Atom(pred, params)
   }
+
+  def parametersList: Parser[List[Symbol]] = "(" ~> parameters <~ ")"
 
   def parameters: Parser[List[Symbol]] = repsep(symbol, ",")
 
