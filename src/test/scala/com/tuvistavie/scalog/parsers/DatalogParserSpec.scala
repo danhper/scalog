@@ -2,7 +2,7 @@ package com.tuvistavie.scalog
 package parsers
 
 import models._
-import AstImplicits._
+import DatalogImplicits._
 
 import org.specs2.mutable._
 

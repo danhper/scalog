@@ -1,6 +1,6 @@
 package com.tuvistavie.scalog.models
 
-object AstImplicits {
+object DatalogImplicits {
   implicit def stringToAtom(predicateName: String) = Atom(predicateName)
 
   implicit def stringToConstant(constantName: String) = Constant(constantName)
