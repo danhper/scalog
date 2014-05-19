@@ -11,7 +11,9 @@ trait DatalogParser extends RegexParsers {
 
   def database: Parser[Database] = rep(data) ^^ { Database(_) }
 
-  def data: Parser[Data] = (clause | formula) <~ "."
+  def data: Parser[Data] = (fact | clause) <~ "."
+
+  def fact: Parser[Fact] = atom ^^ { Fact(_) }
 
   def clause: Parser[Clause] = (atom <~ ":-") ~ formula ^^ {
     case at ~ form => Clause(at, form)
@@ -20,8 +22,8 @@ trait DatalogParser extends RegexParsers {
   def formula: Parser[Formula] = repsep(atom, ",") ^^ { Formula(_) }
 
   def atom: Parser[Atom] = predicate ~ (parametersList ?) ^^ {
-    case pred ~ None => Atom(pred, List.empty)
-    case pred ~ Some(params) => Atom(pred, params)
+    case predicate ~ None => Atom(predicate, List.empty)
+    case predicate ~ Some(params) => Atom(predicate, params)
   }
 
   def parametersList: Parser[List[Symbol]] = "(" ~> parameters <~ ")"
