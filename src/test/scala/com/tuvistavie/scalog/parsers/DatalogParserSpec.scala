@@ -83,5 +83,4 @@ class DatalogParserSpec extends Specification {
       checkedParsed(parsed, "foo".a("X") :- "bar".a("X", "baz"))
     }
   }
-
 }

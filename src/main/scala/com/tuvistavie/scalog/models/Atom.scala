@@ -34,4 +34,3 @@ object Atom {
   def apply(predicate: Predicate, args: List[Symbol]): Atom = new Atom(predicate, args)
   def apply(predicateName: String): Atom = Atom(Predicate(predicateName))
 }
-

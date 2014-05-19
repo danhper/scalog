@@ -28,5 +28,4 @@ class AtomSpec extends Specification {
       }
     }
   }
-
 }
