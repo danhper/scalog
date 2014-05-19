@@ -1,6 +1,8 @@
 package com.tuvistavie.scalog.models
 
 trait NamedEntity {
+  def name: String
+
   def regexp: String
   def isValidName(name: String): Boolean = name.matches(regexp)
 
@@ -11,4 +13,6 @@ trait NamedEntity {
       )
     }
   }
+
+  override def toString: String = name
 }

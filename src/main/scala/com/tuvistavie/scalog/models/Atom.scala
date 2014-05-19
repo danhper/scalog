@@ -22,6 +22,11 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
   def apply(symbols: String*) = Atom(predicate, symbols map { Symbol(_) } toList)
 
   def :-(formula: Formula) = Clause(this, formula)
+
+  override def toString: String = arguments match {
+    case Nil => predicate.toString
+    case _   => predicate + arguments.mkString("(", ", ", ")")
+  }
 }
 
 object Atom {

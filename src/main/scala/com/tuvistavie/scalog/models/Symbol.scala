@@ -1,8 +1,6 @@
 package com.tuvistavie.scalog.models
 
-sealed trait Symbol extends NamedEntity {
-  def name: String
-}
+sealed trait Symbol extends NamedEntity
 
 object Symbol {
   def apply(symbolName: String) = {
@@ -16,7 +14,6 @@ case class Variable(name: String) extends Symbol {
 
   checkName(name)
 
-
   def v: Variable = this
 }
 
@@ -28,7 +25,6 @@ case class Constant(name: String) extends Symbol {
   val regexp = Constant.regexp
 
   checkName(name)
-
 
   def c: Constant = this
 }
