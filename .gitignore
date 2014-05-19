@@ -16,3 +16,6 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 .ensime
+.idea/
+.idea_modules/
+
