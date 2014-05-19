@@ -1,6 +1,8 @@
-package com.tuvistavie.scalog.models
+package com.tuvistavie.scalog
+package models
 
 class Query(val formula: Formula) {
+
   def canEqual(other: Any): Boolean = other.isInstanceOf[Query]
 
   override def equals(other: Any): Boolean = other match {

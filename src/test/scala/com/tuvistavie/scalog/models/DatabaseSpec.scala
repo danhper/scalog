@@ -16,6 +16,14 @@ class DatabaseSpec extends Specification {
       database(("parent", 2)) must haveSize(2)
       database(("ancestor", 2)) must haveSize(2)
     }
+
+    "merge other databases" in {
+      val database: Database = Database.empty
+      val otherDatabase = DatalogParser.parseResource("/dummy.pl").left.get
+      database must haveSize(0)
+      database merge otherDatabase
+      database must haveSize(2)
+    }
   }
 
 }

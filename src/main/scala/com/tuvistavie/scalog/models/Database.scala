@@ -4,6 +4,7 @@ import scala.collection.mutable
 
 trait Database extends mutable.Map[(String, Int), List[Rule]] {
   type Key = (String, Int)
+  def rules: Map[Key, List[Rule]]
 
   def +=(rule: Rule): this.type = addRule(rule)
   def +=(kv: (Key, List[Rule])): this.type = addRules(kv._2)
@@ -14,10 +15,14 @@ trait Database extends mutable.Map[(String, Int), List[Rule]] {
   def getRule(name: String, arity: Int): Option[List[Rule]]
   def addRule(data: Rule): this.type
   def addRules(data: List[Rule]): this.type
+  def merge(database: Database): this.type
 }
 
-class MapDatabase(_rules: List[Rule]) extends Database {
-  private var rules: Map[Key, List[Rule]] = rulesListToMap(_rules)
+class MapDatabase(rulesList: List[Rule]) extends Database {
+  private var _rules: Map[Key, List[Rule]] = rulesListToMap(rulesList)
+  def rules: Map[Key, List[Rule]] = _rules
+
+  override def size: Int = rules.size
 
   def hasRule(name: String, arity: Int): Boolean = rules.contains((name, arity))
   def getRule(name: String, arity: Int): Option[List[Rule]] = rules.get((name, arity))
@@ -26,29 +31,34 @@ class MapDatabase(_rules: List[Rule]) extends Database {
 
   def addRule(rule: Rule): this.type = {
     val key = (rule.ruleName, rule.arity)
-    if (rules.contains(key)) rules += key -> (rule :: rules(key))
-    else rules += key -> List(rule)
+    if (rules.contains(key)) _rules += key -> (rule :: rules(key))
+    else _rules += key -> List(rule)
     this
   }
 
   def addRules(rule: List[Rule]): this.type = {
-    rules ++= rulesListToMap(rule)
+    _rules ++= rulesListToMap(rule)
+    this
+  }
+
+  def merge(database: Database): this.type = {
+    _rules ++= database.rules
     this
   }
 
   override def equals(other: Any): Boolean = other match {
     case that: MapDatabase =>
       (that canEqual this) &&
-        rules == that.rules
+        _rules == that._rules
     case _ => false
   }
 
   override def hashCode(): Int = {
-    val state = Seq(rules)
+    val state = Seq(_rules)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 
-  override def toString: String = rules mkString "\n"
+  override def toString: String = _rules mkString "\n"
 
   private def rulesListToMap(rules: List[Rule]): Map[Key, List[Rule]] = {
     val map: mutable.Map[Key, List[Rule]] = mutable.Map.empty
@@ -63,4 +73,5 @@ class MapDatabase(_rules: List[Rule]) extends Database {
 
 object Database {
   def apply(data: List[Rule]): Database = new MapDatabase(data)
+  def empty: Database = new MapDatabase(List.empty)
 }
