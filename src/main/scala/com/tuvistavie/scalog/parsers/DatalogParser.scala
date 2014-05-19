@@ -3,12 +3,9 @@ package parsers
 
 import scala.util.parsing.combinator.RegexParsers
 
-import ast._
+import models._
 
 trait DatalogParser extends RegexParsers {
-  val variableRegexp  = """[A-Z][a-z0-9_]*""".r
-  val constantRegexp  = """[a-z][a-z0-9_]*""".r
-  val predicateRegexp = constantRegexp
 
   def query: Parser[Query] = formula <~ "." ^^ { Query(_) }
 
@@ -31,9 +28,9 @@ trait DatalogParser extends RegexParsers {
 
   def parameters: Parser[List[Symbol]] = rep1sep(symbol, ",")
 
-  def predicate: Parser[Predicate] = predicateRegexp ^^ { Predicate(_) }
+  def predicate: Parser[Predicate] = Predicate.regexp.r ^^ { Predicate(_) }
 
   def symbol: Parser[Symbol] = variable | constant
-  def variable: Parser[Variable] = variableRegexp ^^ { Variable(_) }
-  def constant: Parser[Constant] = constantRegexp ^^ { Constant(_) }
+  def variable: Parser[Variable] = Variable.regexp.r ^^ { Variable(_) }
+  def constant: Parser[Constant] = Constant.regexp.r ^^ { Constant(_) }
 }

@@ -14,5 +14,6 @@ libraryDependencies ++= Seq(
 scalacOptions ++= Seq(
   "-feature",
   "-deprecation",
-  "-language:postfixOps"
+  "-language:postfixOps",
+  "-language:implicitConversions"
 )

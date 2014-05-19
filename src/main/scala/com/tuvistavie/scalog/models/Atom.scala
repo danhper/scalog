@@ -1,4 +1,4 @@
-package com.tuvistavie.scalog.ast
+package com.tuvistavie.scalog.models
 
 
 class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
@@ -16,9 +16,15 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
     val state = Seq(predicate, arguments)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  def a: Atom = this
+
+  def apply(symbols: Symbol*) = Atom(predicate, symbols.toList)
 }
 
 object Atom {
-  def apply(pred: Predicate, args: List[Symbol]) = new Atom(pred, args)
+  def apply(predicate: Predicate): Atom = new Atom(predicate, List.empty)
+  def apply(predicate: Predicate, args: List[Symbol]): Atom = new Atom(predicate, args)
+  def apply(predicateName: String): Atom = Atom(Predicate(predicateName))
 }
 

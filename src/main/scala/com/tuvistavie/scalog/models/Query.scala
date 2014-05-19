@@ -1,4 +1,4 @@
-package com.tuvistavie.scalog.ast
+package com.tuvistavie.scalog.models
 
 class Query(val formula: Formula) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[Query]

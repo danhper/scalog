@@ -1,4 +1,4 @@
-package com.tuvistavie.scalog.ast
+package com.tuvistavie.scalog.models
 
 class Database(val data: List[Data]) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[Database]
