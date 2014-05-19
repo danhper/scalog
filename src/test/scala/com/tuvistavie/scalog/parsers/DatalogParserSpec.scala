@@ -42,6 +42,28 @@ class DatalogParserSpec extends Specification {
       checkedParsed(parsed, Predicate("foo"))
       parser.parseAll(parser.predicate, "Foo").successful must beFalse
     }
+
+    "parse parameters" in {
+      val parsed = parser.parseAll(parser.parameters, "a,B")
+      checkedParsed(parsed, List(Constant("a"), Variable("B")))
+    }
+
+    "parse parameters list" in {
+      val parsed = parser.parseAll(parser.parametersList, "(a,B)")
+      checkedParsed(parsed, List(Constant("a"), Variable("B")))
+    }
+
+    "parse atom" in {
+      "parse atom without parameters" in {
+        val parsed = parser.parseAll(parser.atom, "foo")
+        checkedParsed(parsed, Atom(Predicate("foo"), List.empty))
+      }
+
+      "parse atom with parameters" in {
+        val parsed = parser.parseAll(parser.atom, "foo(X, y)")
+        checkedParsed(parsed, Atom(Predicate("foo"), List(Variable("X"), Constant("y"))))
+      }
+    }
   }
 
 }
