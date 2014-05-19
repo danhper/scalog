@@ -11,7 +11,7 @@ trait DatalogParser extends RegexParsers {
 
   def database: Parser[Database] = rep(data) ^^ { Database(_) }
 
-  def data: Parser[Data] = (fact | clause) <~ "."
+  def data: Parser[Data] = (clause | fact) <~ "."
 
   def fact: Parser[Fact] = atom ^^ { Fact(_) }
 

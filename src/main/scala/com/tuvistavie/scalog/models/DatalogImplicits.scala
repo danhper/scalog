@@ -8,5 +8,6 @@ object DatalogImplicits {
 
   implicit def stringToPredicate(predicateName: String) = Predicate(predicateName)
 
+  implicit def atomToFact(atom: Atom) = Fact(atom)
   implicit def atomToFormula(atom: Atom) = Formula(atom)
 }

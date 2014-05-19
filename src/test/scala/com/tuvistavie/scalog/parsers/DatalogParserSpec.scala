@@ -82,5 +82,32 @@ class DatalogParserSpec extends Specification {
       val parsed = parser.parseAll(parser.clause, "foo(X) :- bar(X, baz)")
       checkedParsed(parsed, "foo".a("X") :- "bar".a("X", "baz"))
     }
+
+    "parse fact" in {
+      val parsed = parser.parseAll(parser.fact, "foo(X, y)")
+      checkedParsed(parsed, "foo".a("X", "y").toFact)
+    }
+
+    "parse data" in {
+      "parse clause" in {
+        val parsed = parser.parseAll(parser.data, "foo(X) :- bar(X, baz).")
+        checkedParsed(parsed, "foo".a("X") :- "bar".a("X", "baz"))
+      }
+
+      "parse fact" in {
+        val parsed = parser.parseAll(parser.data, "foo(X, y) .")
+        checkedParsed(parsed, "foo".a("X", "y").toFact)
+      }
+    }
+
+    "parse query" in {
+      val parsed = parser.parseAll(parser.query, "foo(a,b,c), bar(a,b).")
+      checkedParsed(parsed, ("foo".a("a", "b", "c") ~~ "bar".a("a", "b")).q)
+    }
+
+    "parse database" in {
+      val parsed = parser.parseAll(parser.database, "foo(a,b,c). bar(a,b).")
+      checkedParsed(parsed, Database(List("foo".a("a", "b", "c"), "bar".a("a", "b"))))
+    }
   }
 }

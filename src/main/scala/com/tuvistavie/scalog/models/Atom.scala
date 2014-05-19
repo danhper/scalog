@@ -4,6 +4,8 @@ package com.tuvistavie.scalog.models
 class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[Atom]
 
+  val name: String = predicate.name
+
   override def equals(other: Any): Boolean = other match {
     case that: Atom =>
       (that canEqual this) &&
@@ -19,9 +21,12 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
 
   def a: Atom = this
 
+  def toFact: Fact = Fact(this)
+
   def apply(symbols: String*) = Atom(predicate, symbols map { Symbol(_) } toList)
 
   def :-(formula: Formula) = Clause(this, formula)
+
 
   override def toString: String = arguments match {
     case Nil => predicate.toString
