@@ -5,9 +5,10 @@ sealed trait Symbol extends NamedEntity {
 }
 
 case class Variable(name: String) extends Symbol {
+  val regexp = Variable.regexp
+
   checkName(name)
 
-  val regexp = Variable.regexp
 
   def v: Variable = this
 }
@@ -17,9 +18,10 @@ object Variable {
 }
 
 case class Constant(name: String) extends Symbol {
+  val regexp = Constant.regexp
+
   checkName(name)
 
-  val regexp = Constant.regexp
 
   def c: Constant = this
 }

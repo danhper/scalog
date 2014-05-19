@@ -1,9 +1,9 @@
 package com.tuvistavie.scalog.models
 
 class Predicate(val name: String) extends NamedEntity {
-  checkName(name)
-
   val regexp = Predicate.regexp
+
+  checkName(name)
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[Predicate]
 
