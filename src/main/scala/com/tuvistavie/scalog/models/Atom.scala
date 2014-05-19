@@ -5,6 +5,7 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[Atom]
 
   val name: String = predicate.name
+  val arity: Int = arguments.length
 
   override def equals(other: Any): Boolean = other match {
     case that: Atom =>
