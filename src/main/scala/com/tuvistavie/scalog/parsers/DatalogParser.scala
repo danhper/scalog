@@ -4,6 +4,7 @@ package parsers
 import scala.util.parsing.combinator.RegexParsers
 
 import models._
+import java.io.{Reader, InputStreamReader}
 
 trait DatalogParser extends RegexParsers {
 
@@ -35,4 +36,23 @@ trait DatalogParser extends RegexParsers {
   def symbol: Parser[Symbol] = variable | constant
   def variable: Parser[Variable] = Variable.regexp.r ^^ { Variable(_) }
   def constant: Parser[Constant] = Constant.regexp.r ^^ { Constant(_) }
+}
+
+object DatalogParser extends DatalogParser {
+  def parseReader(reader: Reader): Either[Database, String] = {
+    parseAll(database, reader) match {
+      case Success(database, _) => Left(database)
+      case NoSuccess(msg, _)    => Right(msg)
+    }
+  }
+
+  def parseResource(resourceName: String): Either[Database, String] = {
+    val reader = new InputStreamReader(getClass.getResourceAsStream(resourceName))
+    parseReader(reader)
+  }
+
+  def parseFile(path: String): Either[Database, String] = {
+    val reader = io.Source.fromFile(path).reader
+    parseReader(reader)
+  }
 }
