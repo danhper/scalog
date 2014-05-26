@@ -1,11 +1,18 @@
 package com.tuvistavie.scalog
 
-import com.tuvistavie.scalog.parsers.DatalogParser
-import com.tuvistavie.scalog.models.{DatalogImplicits, Atom}
+import com.tuvistavie.scalog.repl.Repl
 
-import DatalogImplicits._
+object Main {
+  def usage() = {
+    println("usage: scalog DATABASE")
+    System.exit(1)
+  }
 
-object Main extends DatalogParser {
   def main(args: Array[String]): Unit = {
+    if (args.length != 1) {
+      usage()
+    } else {
+      Repl.start(args(0))
+    }
   }
 }

@@ -1,10 +1,10 @@
 package com.tuvistavie.scalog
 package engine
 
-import com.tuvistavie.scalog.models.Query
+import com.tuvistavie.scalog.models.{Database, Query}
 
 class ExecutableQuery(query: Query) {
-  def ? = currentExecutor.execute(query)
+  def ?(implicit database: Database, executor: Executor)  = executor.execute(query)
 }
 
 object ExecutableQuery {

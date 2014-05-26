@@ -1,12 +1,12 @@
 package com.tuvistavie.scalog
 package engine
 
-import models.Query
+import com.tuvistavie.scalog.models.{Database, Query}
 
 trait Executor {
-  def execute(query: Query): Boolean
+  def execute(query: Query)(implicit database: Database): Boolean
 }
 
 object YesExecutor extends Executor {
-  def execute(query: Query): Boolean = true
+  def execute(query: Query)(implicit database: Database): Boolean = true
 }
