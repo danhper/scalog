@@ -16,6 +16,8 @@ class Query(val formula: Formula) {
     val state = Seq(formula)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  def atoms: List[Atom] = formula.atoms
 }
 
 object Query {

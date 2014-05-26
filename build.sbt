@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 organization := "com.tuvistavie"
 
 name := "scalog"
@@ -17,3 +19,5 @@ scalacOptions ++= Seq(
   "-language:postfixOps",
   "-language:implicitConversions"
 )
+
+assemblySettings

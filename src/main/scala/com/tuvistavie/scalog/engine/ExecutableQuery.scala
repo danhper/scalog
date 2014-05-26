@@ -4,7 +4,8 @@ package engine
 import com.tuvistavie.scalog.models.{Database, Query}
 
 class ExecutableQuery(query: Query) {
-  def ?(implicit database: Database, executor: Executor)  = executor.execute(query)
+  def run(implicit database: Database, executor: Executor)  = executor.execute(query)
+  def ?(implicit database: Database, executor: Executor)  = run
 }
 
 object ExecutableQuery {

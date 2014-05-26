@@ -52,7 +52,11 @@ object DatalogParser extends DatalogParser {
   }
 
   def parseFile(path: String): Either[Database, String] = {
-    val reader = io.Source.fromFile(path).reader
-    parseReader(reader)
+    try {
+      val reader = io.Source.fromFile(path).reader
+      parseReader(reader)
+    } catch {
+      case e: Exception => Right(e.getMessage)
+    }
   }
 }
