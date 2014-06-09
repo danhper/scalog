@@ -15,16 +15,31 @@ class Substitution(val previous: Symbol, val next: Symbol) {
   override def toString: String = previous + " = " + next
 }
 
-class Inference(val atom: Atom, val rules: List[Rule])(implicit database: Database) {
+class Inference(val formula: Formula)(implicit database: Database) {
+  if (formula.atoms isEmpty) throw new IllegalArgumentException("formula should not be empty")
 
-  private val ruleIterator = rules.iterator
+  private var rules: List[Iterator[Rule]] = List(getRules(formula.atoms head))
+
+  private var ruleIterator: Iterator[Rule] = nextIterator()
 
   def processNext(): InferenceResult = {
-    if (!ruleIterator.hasNext) return SimpleFailure
-    ruleIterator.next() match {
-      case Fact(fact) => unify(atom, fact)
-      case Clause(head, formula) => SimpleSuccess
+    if (ruleIterator.hasNext) {
+      ruleIterator.next() match {
+        case Fact(fact) => unify(formula.atoms.head, fact)
+        case Clause(head, formula) => SimpleSuccess
+      }
+    } else if (!rules.isEmpty) {
+      ruleIterator = nextIterator()
+      processNext()
+    } else {
+      SimpleFailure
     }
+  }
+
+  private def nextIterator() = {
+    val newRules = rules.head
+    rules = rules.tail
+    newRules
   }
 
   def unify(premise: Atom, fact: Atom): InferenceResult = {
@@ -42,10 +57,16 @@ class Inference(val atom: Atom, val rules: List[Rule])(implicit database: Databa
     }
   }
 
+  private def getRules(atom: Atom): Iterator[Rule] = {
+    database.getRule(atom.name, atom.arity) match {
+      case Some(rules) => rules.iterator
+      case None => throw new ExecutionException(s"no rule ${atom.name}/${atom.arity}")
+    }
+  }
 }
 
 object Inference {
-  def apply(atom: Atom, rules: List[Rule])(implicit database: Database): Inference = {
-    new Inference(atom, rules)
+  def apply(formula: Formula)(implicit database: Database): Inference = {
+    new Inference(formula)
   }
 }

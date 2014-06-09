@@ -1,5 +1,7 @@
 package com.tuvistavie.scalog.models
 
+import scala.collection.mutable.ListBuffer
+
 
 class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
   def canEqual(other: Any): Boolean = other.isInstanceOf[Atom]
@@ -32,6 +34,12 @@ class Atom(val predicate: Predicate, val arguments: List[Symbol]) {
   override def toString: String = arguments match {
     case Nil => predicate.toString
     case _   => predicate + arguments.mkString("(", ", ", ")")
+  }
+
+  def substitute(source: Symbol, target: Symbol): Atom = {
+    val newArguments = new ListBuffer[Symbol]
+    arguments foreach { s => newArguments.append(if (s == source) target else s) }
+    Atom(predicate, newArguments.toList)
   }
 }
 

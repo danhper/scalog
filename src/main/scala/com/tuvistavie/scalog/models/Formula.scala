@@ -22,6 +22,10 @@ class Formula(val atoms: List[Atom]) {
   }
 
   def q: Query = Query(this)
+
+  def substitute(source: Symbol, target: Symbol): Formula = {
+    Formula(atoms map { a => a.substitute(source, target) })
+  }
 }
 
 object Formula {
