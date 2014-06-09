@@ -10,9 +10,9 @@ class DatabaseSpec extends Specification {
       val parsedDatabase = DatalogParser.parseResource("/dummy.pl")
       parsedDatabase must beLeft
       val database = parsedDatabase.left.get
-      database must haveSize(2)
-      database must haveKey(("parent", 2))
-      database must haveKey(("ancestor", 2))
+      database.size must_== 2
+      database.get(("parent", 2)) must beSome
+      database.get(("ancestor", 2)) must beSome
       database(("parent", 2)) must haveSize(2)
       database(("ancestor", 2)) must haveSize(2)
     }
@@ -20,9 +20,9 @@ class DatabaseSpec extends Specification {
     "merge other databases" in {
       val database: Database = Database.empty
       val otherDatabase = DatalogParser.parseResource("/dummy.pl").left.get
-      database must haveSize(0)
+      database.size must_== 0
       database merge otherDatabase
-      database must haveSize(2)
+      database.size must_== 2
     }
   }
 

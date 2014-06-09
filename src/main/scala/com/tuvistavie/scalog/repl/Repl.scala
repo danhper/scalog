@@ -50,9 +50,11 @@ class Repl(implicit val db: Database) extends DatalogParser {
   def launch(): Unit = {
     print(">> ")
     for (ln <- io.Source.stdin.getLines()) {
-      parseAll(input, ln) match {
-        case Success(input, _) => handleInput(input)
-        case NoSuccess(msg, _) => println(msg)
+      if (!ln.isEmpty) {
+        parseAll(input, ln) match {
+          case Success(input, _) => handleInput(input)
+          case NoSuccess(msg, _) => println(msg)
+        }
       }
       print(">> ")
     }

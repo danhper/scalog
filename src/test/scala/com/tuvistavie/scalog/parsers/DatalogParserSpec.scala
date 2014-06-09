@@ -101,7 +101,12 @@ class DatalogParserSpec extends Specification {
     }
 
     "parse query" in {
-      val parsed = parser.parseAll(parser.query, "foo(a,b,c), bar(a,b).")
+      val parsed = parser.parseAll(parser.query, "foo(a,b,c), bar(a,b)")
+      checkedParsed(parsed, ("foo".a("a", "b", "c") ~~ "bar".a("a", "b")).q)
+    }
+
+    "parse input" in {
+      val parsed = parser.parseAll(parser.input, "foo(a,b,c), bar(a,b).")
       checkedParsed(parsed, ("foo".a("a", "b", "c") ~~ "bar".a("a", "b")).q)
     }
 

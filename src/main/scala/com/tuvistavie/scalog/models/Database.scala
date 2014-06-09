@@ -20,6 +20,7 @@ trait Database {
   def addRule(data: Rule): this.type
   def addRules(data: List[Rule]): this.type
   def merge(database: Database): this.type
+  def apply(key: Key): List[Rule]
 }
 
 class MapDatabase(rulesList: List[Rule]) extends Database {
@@ -30,6 +31,8 @@ class MapDatabase(rulesList: List[Rule]) extends Database {
   def getRule(name: String, arity: Int): Option[List[Rule]] = rules.get((name, arity))
 
   def iterator: Iterator[(Key, List[Rule])] = rules.iterator
+
+  def apply(key: Key): List[Rule] = rules(key)
 
   def addRule(rule: Rule): this.type = {
     val key = (rule.ruleName, rule.arity)
