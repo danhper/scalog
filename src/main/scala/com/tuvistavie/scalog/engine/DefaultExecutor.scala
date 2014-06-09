@@ -19,7 +19,7 @@ class DefaultExecutor extends Executor {
   }
 
   private def processFormula(formula: Formula)(implicit database: Database): InferenceResult = {
-    processAtoms(formula atoms, List.empty) match {
+    processAtoms(formula atoms, List.empty, List.empty) match {
       case (true, Nil)  => SimpleSuccess
       case (true, list) => SuccessWith(list)
       case (false, _)   => SimpleFailure
@@ -27,35 +27,41 @@ class DefaultExecutor extends Executor {
   }
 
 
-  def processAtoms(atoms: List[Atom], substitutions: List[Substitution])(implicit database: Database): (Boolean, List[Substitution]) = {
+  def processAtoms(atoms: List[Atom], substitutions: List[Substitution], seenRules: List[Rule])(implicit database: Database): (Boolean, List[Substitution]) = {
     atoms match {
       case Nil     => (true, substitutions)
       case x :: xs =>
-        val (success, substitution) = unifyAtom(x)
+        val (success, substitution, newlySeenRules) = unifyAtom(x, seenRules)
         if (!success) return (false, List.empty)
         substitution match {
-          case Nil => processAtoms(xs, substitutions)
+          case Nil => processAtoms(xs, substitutions, seenRules)
           case sub =>
             val newAtoms = sub.foldLeft(xs) { case (ats, s) =>
               ats map { a => a.substitute(s.source, s.target) }
             }
-            processAtoms(newAtoms, substitutions ++ sub)
+            processAtoms(newAtoms, substitutions ++ sub, seenRules) match {
+              case (false, _) =>
+                if (newlySeenRules.isEmpty) (false, List.empty)
+                else processAtoms(atoms, substitutions, seenRules ++ newlySeenRules)
+              case success => success
+            }
         }
     }
   }
 
-  private def unifyAtom(atom: Atom)(implicit database: Database): (Boolean, List[Substitution]) = {
-    def tryUnify(rules: List[Rule]): (Boolean, List[Substitution]) = rules match {
-      case Nil     => (false, List.empty)
+  private def unifyAtom(atom: Atom, seenRules: List[Rule])(implicit database: Database): (Boolean, List[Substitution], List[Rule]) = {
+
+    def tryUnify(rules: List[Rule], newlySeenRules: List[Rule]): (Boolean, List[Substitution], List[Rule]) = rules match {
+      case Nil     => (false, List.empty, newlySeenRules)
       case x :: xs => x match {
         case Fact(fact) => unifyArguments(atom arguments, fact arguments, List.empty) match {
-          case (false, _) => tryUnify(xs)
-          case success => success
+          case (false, _) => tryUnify(xs, x :: newlySeenRules)
+          case (true, sub) => (true, sub, x :: newlySeenRules)
         }
-        case Clause(head, formula) => (false, List.empty)
+        case Clause(head, formula) => (false, List.empty, List.empty)
       }
     }
-    tryUnify(getRules(atom))
+    tryUnify(getRules(atom).diff(seenRules), List.empty)
   }
 
   def unifyArguments(args: List[Symbol], ruleArgs: List[Symbol], substitutions: List[Substitution]): (Boolean, List[Substitution]) = {
