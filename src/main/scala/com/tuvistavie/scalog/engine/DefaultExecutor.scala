@@ -15,11 +15,11 @@ class Substitution(val source: Symbol, val target: Symbol) {
 
 class DefaultExecutor extends Executor {
   def execute(query: Query)(implicit database: Database): InferenceResult = {
-    executeFormula(query formula)
+    processFormula(query formula)
   }
 
-  private def executeFormula(formula: Formula)(implicit database: Database): InferenceResult = {
-    executeAtoms(formula atoms, List.empty) match {
+  private def processFormula(formula: Formula)(implicit database: Database): InferenceResult = {
+    processAtoms(formula atoms, List.empty) match {
       case (true, Nil)  => SimpleSuccess
       case (true, list) => SuccessWith(list)
       case (false, _)   => SimpleFailure
@@ -27,19 +27,19 @@ class DefaultExecutor extends Executor {
   }
 
 
-  def executeAtoms(atoms: List[Atom], substitutions: List[Substitution])(implicit database: Database): (Boolean, List[Substitution]) = {
+  def processAtoms(atoms: List[Atom], substitutions: List[Substitution])(implicit database: Database): (Boolean, List[Substitution]) = {
     atoms match {
       case Nil     => (true, substitutions)
       case x :: xs =>
         val (success, substitution) = unifyAtom(x)
         if (!success) return (false, List.empty)
         substitution match {
-          case Nil => executeAtoms(xs, substitutions)
+          case Nil => processAtoms(xs, substitutions)
           case sub =>
             val newAtoms = sub.foldLeft(xs) { case (ats, s) =>
               ats map { a => a.substitute(s.source, s.target) }
             }
-            executeAtoms(newAtoms, substitutions ++ sub)
+            processAtoms(newAtoms, substitutions ++ sub)
         }
     }
   }
