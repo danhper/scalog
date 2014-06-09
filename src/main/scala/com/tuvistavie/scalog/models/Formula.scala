@@ -29,6 +29,7 @@ class Formula(val atoms: List[Atom]) {
 }
 
 object Formula {
+
   def apply(atoms: Atom*): Formula = new Formula(atoms.toList)
   def apply(atoms: List[Atom]): Formula = new Formula(atoms)
 }

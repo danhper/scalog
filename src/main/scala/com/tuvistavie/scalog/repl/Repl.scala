@@ -15,25 +15,22 @@ class Repl(implicit val db: Database) extends DatalogParser {
 
   private def handleQuery(query: Query) = {
     try {
-      processResult(query.run)
+      handleResult(query.run)
     } catch {
       case e: Exception => println(e.getMessage)
     }
   }
 
-  private def processResult(inference: Inference): Unit = inference.processNext() match {
-    case result @ SuccessWith(substitutions) =>
-      println(substitutions mkString "\n")
-      if (io.StdIn.readLine.isEmpty) handleResult(result)
-      else processResult(inference)
-    case result => handleResult(result)
-  }
 
   private def handleResult(inferenceResult: InferenceResult) = inferenceResult match {
     case SimpleFailure => println("no")
-    case _ => println("yes")
+    case SuccessWith(sub) =>
+      println(sub mkString "\n")
+      // TODO: implement functionality to look for next solution
+      io.StdIn.readLine
+      println("yes")
+    case SimpleSuccess => println("yes")
   }
-
 
   def handleImport(fileImport: Import) = {
     try {
