@@ -1,8 +1,11 @@
 package com.tuvistavie.scalog.models
 
 import scala.collection.mutable
+import java.io.{FileNotFoundException, File}
+import org.apache.commons.io.FilenameUtils
+import com.tuvistavie.scalog.parsers.DatalogParser
 
-trait Database extends mutable.Map[(String, Int), List[Rule]] {
+trait Database {
   type Key = (String, Int)
   def rules: Map[Key, List[Rule]]
 
@@ -10,6 +13,7 @@ trait Database extends mutable.Map[(String, Int), List[Rule]] {
   def +=(kv: (Key, List[Rule])): this.type = addRules(kv._2)
   def -=(key: Key): this.type = throw new NotImplementedError("cannot remove rule")
   def get(key: Key): Option[List[Rule]] = getRule(key._1, key._2)
+  def size: Int = rules.size
 
   def hasRule(name: String, arity: Int): Boolean
   def getRule(name: String, arity: Int): Option[List[Rule]]
@@ -21,8 +25,6 @@ trait Database extends mutable.Map[(String, Int), List[Rule]] {
 class MapDatabase(rulesList: List[Rule]) extends Database {
   private var _rules: Map[Key, List[Rule]] = rulesListToMap(rulesList)
   def rules: Map[Key, List[Rule]] = _rules
-
-  override def size: Int = rules.size
 
   def hasRule(name: String, arity: Int): Boolean = rules.contains((name, arity))
   def getRule(name: String, arity: Int): Option[List[Rule]] = rules.get((name, arity))
@@ -46,18 +48,6 @@ class MapDatabase(rulesList: List[Rule]) extends Database {
     this
   }
 
-  override def equals(other: Any): Boolean = other match {
-    case that: MapDatabase =>
-      (that canEqual this) &&
-        _rules == that._rules
-    case _ => false
-  }
-
-  override def hashCode(): Int = {
-    val state = Seq(_rules)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
-
   override def toString: String = _rules mkString "\n"
 
   private def rulesListToMap(rules: List[Rule]): Map[Key, List[Rule]] = {
@@ -69,9 +59,35 @@ class MapDatabase(rulesList: List[Rule]) extends Database {
     }
     map toMap
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[MapDatabase]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: MapDatabase =>
+      (that canEqual this) &&
+        _rules == that._rules
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(_rules)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 object Database {
   def apply(data: List[Rule]): Database = new MapDatabase(data)
   def empty: Database = new MapDatabase(List.empty)
+
+  def fromModule(module: String)(implicit basePath: String): Database = {
+    val dir = new File(basePath)
+    val files = dir.list()
+    files.find(FilenameUtils.removeExtension(_) == module) match {
+      case Some(file) => DatalogParser.parseFile(file) match {
+        case Left(database) => database
+        case Right(error) => throw new RuntimeException(error)
+      }
+      case None => throw new FileNotFoundException(s"module $module not found")
+    }
+  }
 }

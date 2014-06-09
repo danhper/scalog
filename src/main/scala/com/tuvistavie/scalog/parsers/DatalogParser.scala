@@ -8,7 +8,11 @@ import java.io.{Reader, InputStreamReader}
 
 trait DatalogParser extends RegexParsers {
 
-  def query: Parser[Query] = formula <~ "." ^^ { Query(_) }
+  def input: Parser[UserInput] = (fileImport | query) <~ "."
+
+  def fileImport: Parser[Import] = "[" ~> """[a-zA-Z0-9]+""".r <~ "]" ^^ { Import(_) }
+
+  def query: Parser[Query] = formula ^^ { Query(_) }
 
   def database: Parser[Database] = rep(data) ^^ { Database(_) }
 

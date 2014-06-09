@@ -4,15 +4,15 @@ import com.tuvistavie.scalog.repl.Repl
 
 object Main {
   def usage() = {
-    println("usage: scalog DATABASE")
+    println("usage: scalog")
     System.exit(1)
   }
 
   def main(args: Array[String]): Unit = {
-    if (args.length != 1) {
+    if (args.length != 0) {
       usage()
     } else {
-      Repl.start(args(0))
+      Repl.start()
     }
   }
 }
