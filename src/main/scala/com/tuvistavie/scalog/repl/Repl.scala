@@ -4,8 +4,10 @@ package repl
 import parsers.DatalogParser
 
 import engine.ExecutableQuery._
-import com.tuvistavie.scalog.engine.{DefaultExecutor, Executor}
-import com.tuvistavie.scalog.models.{Import, UserInput, Database, Query}
+import com.tuvistavie.scalog.engine._
+import com.tuvistavie.scalog.models._
+import com.tuvistavie.scalog.models.Import
+import com.tuvistavie.scalog.models.Query
 
 class Repl(implicit val db: Database) extends DatalogParser {
   implicit val executor: Executor = new DefaultExecutor
@@ -13,12 +15,25 @@ class Repl(implicit val db: Database) extends DatalogParser {
 
   private def handleQuery(query: Query) = {
     try {
-      if (query.run) println("yes")
-      else println("no")
+      processResult(query.run)
     } catch {
       case e: Exception => println(e.getMessage)
     }
   }
+
+  private def processResult(inference: Inference): Unit = inference.processNext() match {
+    case result @ SuccessWith(substitutions) =>
+      println(substitutions mkString "\n")
+      if (io.StdIn.readLine.isEmpty) handleResult(result)
+      else processResult(inference)
+    case result => handleResult(result)
+  }
+
+  private def handleResult(inferenceResult: InferenceResult) = inferenceResult match {
+    case SimpleFailure => println("no")
+    case _ => println("yes")
+  }
+
 
   def handleImport(fileImport: Import) = {
     try {
