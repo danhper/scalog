@@ -2,6 +2,8 @@ package com.tuvistavie.scalog.engine
 
 import com.tuvistavie.scalog.models._
 
+case class EvaluationResult(result: InferenceResult, seenRules: List[Rule])
+
 sealed trait InferenceResult
 
 case class SuccessWith(atoms: List[Substitution]) extends InferenceResult
@@ -9,20 +11,16 @@ case object SimpleSuccess extends InferenceResult
 case object SimpleFailure extends InferenceResult
 
 
-class Substitution(val source: Symbol, val target: Symbol) {
-  override def toString: String = source + " = " + target
-}
-
 class DefaultExecutor extends Executor {
-  def execute(query: Query)(implicit database: Database): InferenceResult = {
-    processFormula(query formula)
+  def execute(query: Query)(implicit database: Database): (EvaluationResult) = {
+    processFormula(query formula, query.seenRules)
   }
 
-  private def processFormula(formula: Formula)(implicit database: Database): InferenceResult = {
-    processAtoms(formula atoms, List.empty, List.empty) match {
-      case (true, Nil, _)  => SimpleSuccess
-      case (true, list, _) => SuccessWith(list)
-      case (false, _, _)   => SimpleFailure
+  private def processFormula(formula: Formula, seenRules: List[Rule] = List.empty)(implicit database: Database): EvaluationResult = {
+    processAtoms(formula atoms, List.empty, seenRules) match {
+      case (true, Nil, r)  => EvaluationResult(SimpleSuccess, r)
+      case (true, list, r) => EvaluationResult(SuccessWith(list), r)
+      case (false, _, r)   => EvaluationResult(SimpleFailure, r)
     }
   }
 
@@ -39,11 +37,11 @@ class DefaultExecutor extends Executor {
             val newAtoms = sub.foldLeft(xs) { case (ats, s) =>
               ats map { a => a.substitute(s.source, s.target) }
             }
-            processAtoms(newAtoms, substitutions ++ sub, seenRules) match {
+            processAtoms(newAtoms, substitutions ++ sub, newlySeenRules ++ seenRules) match {
               case (false, _, _) =>
                 if (newlySeenRules.isEmpty) (false, List.empty, seenRules)
                 else processAtoms(atoms, substitutions, seenRules ++ newlySeenRules)
-              case success => success
+              case s => s
             }
         }
     }
@@ -63,7 +61,10 @@ class DefaultExecutor extends Executor {
             case (false, _) => tryUnify(xs, x :: newlySeenRules)
             case (true, sub) => {
               val atoms = sub.foldLeft(formula) { case (f, s) => f.substitute(s.source, s.target) }.atoms
-              processAtoms(atoms, List.empty, List.empty)
+              processAtoms(atoms, List.empty, List.empty) match {
+                case success @ (true, _, _) => success
+                case _ => tryUnify(xs, x :: newlySeenRules)
+              }
             }
           }
         }

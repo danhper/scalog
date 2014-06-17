@@ -13,23 +13,23 @@ class Repl(implicit val db: Database) extends DatalogParser {
   implicit val executor: Executor = new DefaultExecutor
   implicit val basePath: String = sys.props("user.dir")
 
-  private def handleQuery(query: Query) = {
+  private def handleQuery(query: Query): Unit = {
     try {
-      handleResult(query.run)
+      handleResult(query.run, query)
     } catch {
       case e: Exception => println(e.getMessage)
     }
   }
 
 
-  private def handleResult(inferenceResult: InferenceResult) = inferenceResult match {
-    case SimpleFailure => println("no")
-    case SuccessWith(sub) =>
+  private def handleResult(evaluationResult: EvaluationResult, baseQuery: Query): Unit = evaluationResult match {
+    case EvaluationResult(SimpleFailure, _) => println("no")
+    case EvaluationResult(SuccessWith(sub), r) =>
       println(sub mkString "\n")
       // TODO: implement functionality to look for next solution
-      io.StdIn.readLine
-      println("yes")
-    case SimpleSuccess => println("yes")
+      if (io.StdIn.readLine.isEmpty) println("yes")
+      else handleQuery(new Query(baseQuery.formula, r))
+    case EvaluationResult(SimpleSuccess, _) => println("yes")
   }
 
   def handleImport(fileImport: Import) = {
