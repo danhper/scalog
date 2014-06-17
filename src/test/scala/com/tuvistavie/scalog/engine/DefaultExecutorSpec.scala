@@ -15,8 +15,8 @@ class DefaultExecutorSpec extends Specification {
     "female".a("bar"),
     "female".a("qux"),
 
-    "parent".a("foo", "baz"),
     "parent".a("qux", "foo"),
+    "parent".a("foo", "baz"),
     "parent".a("bar", "baz"),
 
     "father".a("A", "B") :- "parent".a("A", "B") ~~ "male".a("A"),
@@ -33,7 +33,7 @@ class DefaultExecutorSpec extends Specification {
       val result: EvaluationResult = "male".a("foo").q?
 
       result.result must_== SimpleSuccess
-      result.seenRules must haveLength(0)
+      result.seenRules must haveLength(1)
     }
 
     "execute queries with variables" in {
@@ -50,9 +50,26 @@ class DefaultExecutorSpec extends Specification {
       result.result must_== SuccessWith(List(new Substitution("X".v, "baz".c)))
       result.seenRules must haveLength(2)
       result.seenRules must containAllOf(seenRules)
+    }
 
+    "handle compound queries" in {
+      val result = ("male".a("X") ~~ "parent".a("foo", "X")).q?
+
+      result.result must_== SuccessWith(List(new Substitution("X".v, "baz".c)))
+      result.seenRules must not beEmpty
+    }
+
+    "handle compound rules" in {
+      val result = "mother".a("X", "baz").q?
+
+      result.result must_== SuccessWith(List(new Substitution("X".v, "bar".c)))
+      result.seenRules must not beEmpty
+    }
+
+    "handle recursive rules" in {
+      val result = "ancestor".a("qux", "baz").q?
+
+      result.result must_== SimpleSuccess
     }
   }
-
-
 }

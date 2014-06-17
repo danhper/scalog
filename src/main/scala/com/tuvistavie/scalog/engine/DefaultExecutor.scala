@@ -17,11 +17,16 @@ class DefaultExecutor extends Executor {
   }
 
   private def processFormula(formula: Formula, seenRules: List[Rule] = List.empty)(implicit database: Database): EvaluationResult = {
-    processAtoms(formula atoms, List.empty, seenRules) match {
-      case (true, Nil, r)  => EvaluationResult(SimpleSuccess, r)
-      case (true, list, r) => EvaluationResult(SuccessWith(list), r)
-      case (false, _, r)   => EvaluationResult(SimpleFailure, r)
+    val variables = formula.atoms flatMap { a => a.arguments filter(_.isInstanceOf[Variable]) }
+    val result = processAtoms(formula atoms, List.empty, seenRules) match {
+      case (true, Nil, r)  => (SimpleSuccess, r)
+      case (true, list, r) => list.filter(s => variables.contains(s.source)) match {
+        case Nil => (SimpleSuccess, r)
+        case li => (SuccessWith(li), r)
+      }
+      case (false, _, r)   => (SimpleFailure, r)
     }
+    EvaluationResult(result._1, result._2.toSet.toList)
   }
 
 
@@ -32,7 +37,7 @@ class DefaultExecutor extends Executor {
         val (success, substitution, newlySeenRules) = unifyAtom(x, seenRules)
         if (!success) return (false, List.empty, seenRules)
         substitution match {
-          case Nil => processAtoms(xs, substitutions, seenRules)
+          case Nil => processAtoms(xs, substitutions, newlySeenRules ++ seenRules)
           case sub =>
             val newAtoms = sub.foldLeft(xs) { case (ats, s) =>
               ats map { a => a.substitute(s.source, s.target) }
@@ -61,7 +66,7 @@ class DefaultExecutor extends Executor {
             case (false, _) => tryUnify(xs, x :: newlySeenRules)
             case (true, sub) => {
               val atoms = sub.foldLeft(formula) { case (f, s) => f.substitute(s.source, s.target) }.atoms
-              processAtoms(atoms, List.empty, List.empty) match {
+              processAtoms(atoms, List.empty, seenRules) match {
                 case success @ (true, _, _) => success
                 case _ => tryUnify(xs, x :: newlySeenRules)
               }
@@ -70,7 +75,7 @@ class DefaultExecutor extends Executor {
         }
       }
     }
-    tryUnify(getRules(atom).diff(seenRules), List.empty)
+    tryUnify(getRules(atom).diff(seenRules), seenRules)
   }
 
   def unifyArguments(args: List[Symbol], ruleArgs: List[Symbol], substitutions: List[Substitution]): (Boolean, List[Substitution]) = {
