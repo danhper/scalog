@@ -36,7 +36,7 @@ class MapDatabase(rulesList: List[Rule]) extends Database {
 
   def addRule(rule: Rule): this.type = {
     val key = (rule.ruleName, rule.arity)
-    if (rules.contains(key)) _rules += key -> (rule :: rules(key))
+    if (rules.contains(key)) _rules += key -> (rules(key) :+ rule)
     else _rules += key -> List(rule)
     this
   }
@@ -57,7 +57,7 @@ class MapDatabase(rulesList: List[Rule]) extends Database {
     val map: mutable.Map[Key, List[Rule]] = mutable.Map.empty
     rules foreach { d =>
       val key = (d.ruleName, d.arity)
-      if (map.contains(key)) map += key -> (d :: map(key))
+      if (map.contains(key)) map += key -> (map(key) :+ d)
       else map += key -> List(d)
     }
     map toMap
